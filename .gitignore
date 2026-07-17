@@ -1,0 +1,12 @@
+# Local analysis and preview artifacts
+/tmp/
+
+# Runtime logs
+*.log
+
+# OS/editor metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
