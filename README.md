@@ -58,10 +58,10 @@ flowchart TB
 
 The total surface wind stress is
 
-\[
+$$
 \boldsymbol{\tau}=\boldsymbol{\tau}_{\mathrm{clim}}
  +\alpha_{\tau}\boldsymbol{\tau}_{\mathrm{inter}},
-\]
+$$
 
 where `alpha_tau` controls the strength of the interannual wind-stress feedback.
 
@@ -69,21 +69,21 @@ where `alpha_tau` controls the strength of the interannual wind-stress feedback.
 
 The updated statistical model predicts precipitation rather than the complete net freshwater flux:
 
-\[
+$$
 P=P_{\mathrm{clim}}+\alpha_P P_{\mathrm{inter}}.
-\]
+$$
 
 Evaporation is diagnosed from the latent heat flux:
 
-\[
+$$
 E=-\frac{LH}{L_e}.
-\]
+$$
 
 The net freshwater flux applied to the ROMS surface salinity boundary condition is
 
-\[
+$$
 E-P.
-\]
+$$
 
 Some historical `FWF` names are retained for backward compatibility. For example, `HCM_ALPHA_FWF` represents the precipitation coupling coefficient `alpha_P` in the current implementation, while `dWdT_*` stores the projection weights and spatial modes for the SST-to-precipitation response.
 
@@ -91,13 +91,13 @@ Some historical `FWF` names are retained for backward compatibility. For example
 
 The air-sea interface uses bulk formulas to calculate latent and sensible heat fluxes:
 
-\[
+$$
 LH=-\rho_a L_e C_E V_{wg}(q_s-q_a),
-\]
+$$
 
-\[
+$$
 SH=-\rho_a c_p C_H V_{wg}(SST-T_a).
-\]
+$$
 
 Surface wind speed is inferred from the wind stress. The current implementation uses `Cd=1.7e-3`, `Ce=1.4e-3`, and `Ch=1.4e-3`.
 
@@ -107,21 +107,21 @@ The statistical relationship is constructed by applying SVD to the covariance ma
 
 For each mode `k`, every ROMS partition first computes a local projection coefficient:
 
-\[
+$$
 a_k^{(r)}=\sum_{(i,j)\in r} SST_{\mathrm{inter}}(i,j)W_k(i,j),
-\]
+$$
 
 where `r` denotes an MPI partition and `W_k` is the SST projection weight. The global modal coefficient is
 
-\[
+$$
 a_k=\sum_r a_k^{(r)}.
-\]
+$$
 
 After receiving the global coefficients, each partition reconstructs its local atmospheric forcing:
 
-\[
+$$
 Y_{\mathrm{inter}}(i,j)=\alpha_Y\sum_{k=1}^{K}a_kM_k(i,j),
-\]
+$$
 
 where `M_k` is a wind-stress or precipitation response mode and the default mode count is `K=5`.
 
@@ -157,15 +157,15 @@ With five retained modes, each rank exchanges only:
 
 The communication scale is therefore reduced from approximately
 
-\[
+$$
 O(N_{\mathrm{grid}})
-\]
+$$
 
 to
 
-\[
+$$
 O(KN_{\mathrm{rank}}),
-\]
+$$
 
 where `K` is the number of retained modes. As the grid resolution increases, the communicated data volume does not grow directly with the number of local grid points. This design enables high-resolution and large-scale MPI simulations.
 
