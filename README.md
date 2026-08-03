@@ -44,7 +44,7 @@ flowchart TB
     TAU --> BULK
     SST --> BULK
     BULK -->|"Heat-flux feedback"| ROMS
-    BULK -->|"E = -LH / L_e"| EMP
+    BULK -->|"E = -LH / Lₑ"| EMP
     SST --> PRECIP
     PRECIP --> EMP
     EMP -->|"Freshwater-flux coupling"| ROMS
