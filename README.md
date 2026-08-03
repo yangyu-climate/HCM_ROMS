@@ -17,14 +17,41 @@ The updated HCM consists of three coupled layers:
 3. **Ocean**: ROMS supplies SST to the coupling system and receives wind-stress, heat-flux, and freshwater-flux feedbacks.
 
 ```mermaid
-flowchart LR
-    OCEAN["Ocean<br/>Physical Model (ROMS)"]
-    ATM["Atmosphere<br/>Statistical Model<br/>Wind Stress and Precipitation"]
-    ASI["Air-sea Interface<br/>SST Anomaly, Turbulent Heat Flux, and E - P"]
+flowchart TB
+    subgraph ATM["Atmosphere"]
+        direction LR
+        subgraph STAT["Statistical Model"]
+            direction LR
+            TAU["tau = tau_clim + alpha_tau * tau_inter"]
+            PRECIP["P = P_clim + alpha_P * P_inter"]
+        end
+    end
 
-    OCEAN -->|"SST anomaly"| ATM
-    ATM -->|"Wind stress and precipitation"| ASI
-    ASI -->|"Heat-flux and freshwater-flux feedback"| OCEAN
+    subgraph ASI["Air-sea Interface"]
+        direction LR
+        BULK["Turbulent Heat Flux"]
+        SST["SST_inter = SST - SST_clim"]
+        EMP["E - P"]
+    end
+
+    subgraph OCEAN["Ocean"]
+        ROMS["Physical Model (ROMS)"]
+    end
+
+    ROMS --> SST
+    SST --> TAU
+    TAU -->|"Wind-stress coupling"| ROMS
+    TAU --> BULK
+    SST --> BULK
+    BULK -->|"Heat-flux feedback"| ROMS
+    BULK -->|"E = -LH / L_e"| EMP
+    SST --> PRECIP
+    PRECIP --> EMP
+    EMP -->|"Freshwater-flux coupling"| ROMS
+
+    linkStyle 1,2 stroke:#e60000,stroke-width:3px
+    linkStyle 5 stroke:#00cfd5,stroke-width:3px
+    linkStyle 6,7,8,9 stroke:#8b5cf6,stroke-width:3px
 ```
 
 ### 1.1 Wind-Stress Feedback
