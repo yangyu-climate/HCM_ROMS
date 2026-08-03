@@ -18,35 +18,13 @@ The updated HCM consists of three coupled layers:
 
 ```mermaid
 flowchart LR
-    subgraph OCEAN["Ocean"]
-        ROMS["Physical Model (ROMS)"]
-    end
+    OCEAN["Ocean<br/>Physical Model (ROMS)"]
+    ATM["Atmosphere<br/>Statistical Model<br/>Wind Stress and Precipitation"]
+    ASI["Air-sea Interface<br/>SST Anomaly, Turbulent Heat Flux, and E - P"]
 
-    subgraph ASI["Air-sea Interface"]
-        direction TB
-        SST["SST anomaly"]
-        BULK["Turbulent Heat Flux"]
-        EMP["E - P"]
-    end
-
-    subgraph ATM["Atmosphere"]
-        direction TB
-        STAT["Statistical Model"]
-        TAU["Wind stress"]
-        PRECIP["Precipitation"]
-    end
-
-    ROMS -->|"SST_inter = SST - SST_clim"| SST
-    SST --> STAT
-    STAT -->|"tau = tau_clim + alpha_tau * tau_inter"| TAU
-    STAT -->|"P = P_clim + alpha_P * P_inter"| PRECIP
-    TAU -->|"Wind-stress coupling"| ROMS
-    TAU --> BULK
-    SST --> BULK
-    BULK -->|"Heat-flux feedback"| ROMS
-    BULK -->|"E = -LH / L_e"| EMP
-    PRECIP --> EMP
-    EMP -->|"Freshwater-flux coupling"| ROMS
+    OCEAN -->|"SST anomaly"| ATM
+    ATM -->|"Wind stress and precipitation"| ASI
+    ASI -->|"Heat-flux and freshwater-flux feedback"| OCEAN
 ```
 
 ### 1.1 Wind-Stress Feedback
