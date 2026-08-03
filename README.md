@@ -10,30 +10,48 @@ The current code extends the published model with optimized MPI communication fo
 
 ## 1. Model Architecture
 
-The updated HCM consists of three main components:
+The updated HCM consists of three coupled layers:
 
-1. **Physical ocean model**: ROMS;
-2. **Statistical atmospheric model**: precomputed SVD modes reconstruct wind stress and precipitation anomalies from SST anomalies;
-3. **Air-sea interface module**: computes latent heat, sensible heat, evaporation, and their feedbacks to the ocean temperature and salinity fields.
+1. **Atmosphere**: a statistical model reconstructs wind stress and precipitation from the interannual SST anomaly;
+2. **Air-sea interface**: the SST anomaly drives the statistical model, while wind stress and SST determine the turbulent heat flux. Evaporation diagnosed from latent heat flux is combined with precipitation to form `E-P`;
+3. **Ocean**: ROMS supplies SST to the coupling system and receives wind-stress, heat-flux, and freshwater-flux feedbacks.
 
 ```mermaid
-flowchart TD
-    ROMS["Physical Model (ROMS)"] --> SST["SST_inter = SST - SST_clim"]
-    SST --> TAU["Statistical wind-stress model"]
-    SST --> PRECIP["Statistical precipitation model"]
+flowchart TB
+    subgraph ATM["Atmosphere"]
+        direction LR
+        subgraph STAT["Statistical Model"]
+            direction LR
+            TAU["tau = tau_clim + alpha_tau * tau_inter"]
+            PRECIP["P = P_clim + alpha_P * P_inter"]
+        end
+    end
 
-    TAU --> TAUEQ["tau = tau_clim + alpha_tau * tau_inter"]
-    PRECIP --> PEQ["P = P_clim + alpha_P * P_inter"]
+    subgraph ASI["Air-sea Interface"]
+        direction LR
+        BULK["Turbulent Heat Flux"]
+        SST["SST_inter = SST - SST_clim"]
+        EMP["E - P"]
+    end
 
-    TAUEQ --> ROMS
-    TAUEQ --> BULK["Turbulent heat-flux module"]
+    subgraph OCEAN["Ocean"]
+        ROMS["Physical Model (ROMS)"]
+    end
+
+    ROMS --> SST
+    SST --> TAU
+    TAU -->|"Wind-stress coupling"| ROMS
+    TAU --> BULK
     SST --> BULK
-    BULK --> HEAT["Latent + sensible heat-flux feedback"]
-    BULK --> EVAP["E = -LH / Le"]
-    HEAT --> ROMS
-    EVAP --> EMP["E - P"]
-    PEQ --> EMP
-    EMP --> ROMS
+    BULK -->|"Heat-flux feedback"| ROMS
+    BULK -->|"E = -LH / L_e"| EMP
+    SST --> PRECIP
+    PRECIP --> EMP
+    EMP -->|"Freshwater-flux coupling"| ROMS
+
+    linkStyle 1,2 stroke:#e60000,stroke-width:3px
+    linkStyle 5 stroke:#00cfd5,stroke-width:3px
+    linkStyle 6,7,8,9 stroke:#8b5cf6,stroke-width:3px
 ```
 
 ### 1.1 Wind-Stress Feedback
